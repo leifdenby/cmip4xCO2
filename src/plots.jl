@@ -21,20 +21,24 @@ var_desc = Dict(
 )
 
 
+df_results = CSV.read("tas_fit_all.csv", DataFrame)
+df_results = DataFrames.unstack(df_results, :gcm, :parameters, :value)
+for v in keys(units)
+    df_results[!,v] = measurement.(df_results[!,v])
+end
+
 
 function plot_all()
-    df_results = CSV.read("tas_fit_all.csv", DataFrame)
-    df_results[!,:value] = measurement.(df_results[!,:value])
     # remove when CSV has been cleaned
     #df_results = df_results[df_results[!,:gcm] .!= "Year",:]
 
     subplots = []
     for var_name in keys(units)
-        df_results_variable = df_results[df_results[!, :parameters] .== var_name,:]
-        n_gcms = size(df_results_variable, 1)
+        n_gcms = size(df_results, 1)
         p = scatter(
-            1:n_gcms, df_results_variable[!,:value], 
-            xrotation=90, title="$(var_name) ($(var_desc[var_name]))", xticks=(1:n_gcms, df_results_variable[!,:gcm]),
+            1:n_gcms, df_results[!,Symbol(var_name)], 
+            xrotation=90, title="$(var_name) ($(var_desc[var_name]))",
+            xticks=(1:n_gcms, df_results[!,:gcm]),
             label=nothing, ylabel="$(var_name) [$(units[var_name])]"
         )
         if var_name == "ω_n"
@@ -47,3 +51,34 @@ end
 
 p = plot_all()
 savefig(p, "tas_fit_all.png")
+
+
+function zeta_frequency_plot()
+    xvar = "ω_n"
+    yvar = "ζ"
+    scatter(
+        #Measurements.value.(df_results[!,:ω_n]), 
+        #Measurements.value.(df_results[!, :σ]), 
+        df_results[!,xvar],
+        df_results[!,yvar], 
+        xlabel="$xvar [$(units[xvar])]", ylabel="$(yvar) [$(units[yvar])]",
+        label=:none
+    )
+
+    df_results_ann = df_results[df_results.ω_n .> 0.1, :]
+    annotate!(
+        Measurements.value.(df_results_ann[!,xvar]),
+        Measurements.value.(df_results_ann[!, yvar]), Plots.text.(df_results_ann.gcm, 10, :bottom, )
+    )
+
+    df_results_ann = df_results[df_results.ζ .> 4.0, :]
+    annotate!(
+        Measurements.value.(df_results_ann[!,xvar]),
+        Measurements.value.(df_results_ann[!, yvar]), Plots.text.(df_results_ann.gcm, 10, :left, :bottom)
+    )
+end
+
+p = zeta_frequency_plot()
+savefig(p, "tas_fit_all_zeta_vs_omega_n.png")
+
+(df_results[!, :ω_n])

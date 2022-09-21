@@ -88,6 +88,7 @@ function main()
             append!(df_results, df_results_gcm)
         end
     end
+    df_results = DataFrames.unstack(df_results, :gcm, :parameters, :value)
     CSV.write("tas_fit_all.csv", df_results)
 end
 
