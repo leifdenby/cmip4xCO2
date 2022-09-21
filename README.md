@@ -2,4 +2,11 @@
 
 data from https://github.com/mark-ringer/cmip6
 
-![](tas_oscillator_fit_CAMS-CSM1-0.png)
+Fit for single GCM:
+
+![](plots/tas_oscillator_fit_CAMS-CSM1-0.png)
+
+
+Parameter distributions for fits to all GCMs:
+
+![](tas_fit_all.png)
